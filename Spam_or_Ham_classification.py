@@ -1,19 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# <a href="https://colab.research.google.com/github/ColleyMo/Spam_or_ham_detector/blob/main/Spam_or_Ham_classification.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
-
-# In[ ]:
-
-
-#install packages and libraries
-# pip install Sklearn
-
-
-
-# In[22]:
-
-
 #import libraries
 
 import pandas as pd
