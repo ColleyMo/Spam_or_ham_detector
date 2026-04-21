@@ -40,7 +40,7 @@ def train_model():
 
 
 # ── App ──
-st.title("🛡️ Spam or Ham Classifier")
+st.title("📩 Spam or Ham Classifier")
 st.write("Enter a text message below to find out if it's spam or legitimate.")
 
 svm_classifier, vectorizer, accuracy, report = train_model()
