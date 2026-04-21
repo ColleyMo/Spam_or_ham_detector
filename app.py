@@ -1,68 +1,62 @@
+import os
 import streamlit as st
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, classification_report
 import joblib
 
-# Page configuration
-st.set_page_config(
-    page_title="Spam or Ham Detector",
-    page_icon="📩",
-    layout="centered"
-)
+# Fix working directory so dataset.csv is always found
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-# Title
-st.title("📩 Spam or Ham Message Detector")
-st.write("Enter a text message and the model will predict whether it is **Spam** or **Ham (Not Spam)**.")
-
-# Load trained model and vectorizer
+# ── Train and cache the model so it doesn't retrain on every interaction ──
 @st.cache_resource
-def load_model():
-    model = joblib.load("svm_classifier.pkl")
-    vectorizer = joblib.load("vectorizer.pkl")
-    return model, vectorizer
+def train_model():
+    data = pd.read_csv('dataset.csv')
 
-model, vectorizer = load_model()
+    X = data['text']
+    y = data['text_type']
 
-# Text input
-message = st.text_area("Enter your message here")
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
 
-# Predict button
-if st.button("Predict"):
+    vectorizer = TfidfVectorizer()
+    X_train_vectorized = vectorizer.fit_transform(X_train)
+    X_test_vectorized = vectorizer.transform(X_test)
 
-    if message.strip() == "":
-        st.warning("Please enter a message.")
+    svm_classifier = SVC(kernel='linear')
+    svm_classifier.fit(X_train_vectorized, y_train)
+
+    y_pred = svm_classifier.predict(X_test_vectorized)
+    accuracy = accuracy_score(y_test, y_pred)
+    report = classification_report(y_test, y_pred)
+
+    joblib.dump(svm_classifier, 'svm_classifier.pkl')
+    joblib.dump(vectorizer, 'vectorizer.pkl')
+
+    return svm_classifier, vectorizer, accuracy, report
+
+
+# ── App ──
+st.title("🛡️ Spam or Ham Classifier")
+st.write("Enter a text message below to find out if it's spam or legitimate.")
+
+svm_classifier, vectorizer, accuracy, report = train_model()
+
+st.metric("Model Accuracy", f"{accuracy:.1%}")
+
+input_text = st.text_area("Enter a text message:")
+
+if st.button("Classify") and input_text.strip():
+    input_vectorized = vectorizer.transform([input_text])
+    result = svm_classifier.predict(input_vectorized)[0]
+
+    if result == "spam":
+        st.error("⚠️ This message is SPAM")
     else:
-        # Transform input
-        message_vector = vectorizer.transform([message])
+        st.success("✅ This message is HAM (Legitimate)")
 
-        # Predict
-        prediction = model.predict(message_vector)[0]
-
-        # Show result
-        if prediction.lower() == "spam":
-            st.error("🚨 This message is **SPAM**")
-        else:
-            st.success("✅ This message is **HAM (Not Spam)**")
-
-# Optional: show example messages
-st.markdown("---")
-st.subheader("Example Messages")
-
-example_spam = "Congratulations! You've won a free iPhone. Click here to claim."
-example_ham = "Hey, are we still meeting for dinner tonight?"
-
-col1, col2 = st.columns(2)
-
-with col1:
-    if st.button("Try Spam Example"):
-        message_vector = vectorizer.transform([example_spam])
-        prediction = model.predict(message_vector)[0]
-        st.error(f"Prediction: {prediction}")
-
-with col2:
-    if st.button("Try Normal Message"):
-        message_vector = vectorizer.transform([example_ham])
-        prediction = model.predict(message_vector)[0]
-        st.success(f"Prediction: {prediction}")
-
-# Footer
-st.markdown("---")
-st.caption("Built with Streamlit, Scikit-Learn, and NLP techniques.")
+with st.expander("View Classification Report"):
+    st.text(report)
