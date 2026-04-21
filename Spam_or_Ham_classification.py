@@ -1,5 +1,6 @@
 #import libraries
 
+
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
@@ -39,9 +40,6 @@ print("Accuracy:", accuracy)
 # Print classification report
 print("Classification Report:")
 print(classification_report(y_test, y_pred))
-
-
-# In[ ]:
 
 
 # Save the trained model and vectorizer
