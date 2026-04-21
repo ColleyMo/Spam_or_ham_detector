@@ -9,9 +9,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import SVC
 import joblib
 
-# In[ ]:
-
-
 # Load the dataset
 import os
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
