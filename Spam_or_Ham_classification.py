@@ -9,7 +9,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import SVC
 import joblib
 
-
 # In[ ]:
 
 
